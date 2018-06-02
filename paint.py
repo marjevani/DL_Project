@@ -23,9 +23,17 @@ class Paint(object):
         self.send_btn = Button(self.root, text='send', command=self.send_eval)
         self.send_btn.grid(row=0, column=2)
 
-        self.eraser_btn = Button(self.root, text='eraser', command=self.use_eraser)
-        self.eraser_btn.grid(row=0, column=3)
+        ## Create eraser/painter radio buttons:
+        erase_frame = Frame(self.root)
+        self.eraser_on = BooleanVar()
+        R1 = Radiobutton(erase_frame, text="painter", variable=self.eraser_on, value=False,
+                         command=self.use_eraser)
+        R2 = Radiobutton(erase_frame, text="eraser", variable=self.eraser_on, value=True,
+                         command=self.use_eraser)
+        erase_frame.grid(row=0, column=4)
 
+        R1.pack(side="left")
+        R2.pack(side="right")
 
         # Create a grid of None to store the references to the tiles
         self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
@@ -44,7 +52,7 @@ class Paint(object):
         col = event.x//col_width
         row = event.y//row_height
         # If the tile is not filled, create a rectangle
-        if not self.eraser_on:
+        if not self.eraser_on.get():
             if not self.tiles[row][col]:
                 colorval = "#%02x%02x%02x" % (0, 0, 0)
                 self.tiles[row][col] =self.c.create_rectangle(col*col_width, row*row_height, (col+1)*col_width, (row+1)*row_height, fill=colorval,outline=colorval)
@@ -57,7 +65,7 @@ class Paint(object):
         self.old_y = None
         #self.line_width = self.choose_size_button.get()
         self.color = self.DEFAULT_COLOR
-        self.eraser_on = False
+        self.eraser_on.set(False)
         self.active_button = self.center_btn
         self.c.bind("<B1-Motion>", self.callback)
         # self.c.bind('<B1-Motion>', self.callback)
@@ -121,10 +129,8 @@ class Paint(object):
                 colorval = "#%02x%02x%02x" % (num,num,num)
                 centerd[row][col] = self.c.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width,
                                                            (row + 1) * row_height, fill=colorval, outline=colorval)
-
-
         self.pic = pic
-        pass
+
 
     def pad(self):
         pic = self.pic
@@ -156,9 +162,6 @@ class Paint(object):
                 centerd[row][col] = self.c.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width,
                                                             (row + 1) * row_height, fill=colorval, outline=colorval)
 
-
-        pass
-
     def send_eval(self):
         print("ok")
         mnist_object.eval(self.final)
@@ -167,14 +170,7 @@ class Paint(object):
         #self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
 
     def use_eraser(self):
-        self.eraser_on = not self.eraser_on
-        # # preesed += 'SUNKEN' if self.eraser_on else "RAISED"
-        # if self.eraser_on :
-        #     # self.eraser_button.config(relief=SUNKEN)
-        #     self.eraser_button.configure('SunkableButton.TButton', relief=SUNKEN, foreground='green')
-        # else:
-        #     self.eraser_button.configure('SunkableButton.TButton', relief=RAISED, foreground='red')
-
+        pass
 
 
     def reset(self, event):
