@@ -14,17 +14,17 @@ class Paint(object):
     def __init__(self):
         self.root = Tk()
 
-        self.pen_button = Button(self.root, text='center', command=self.centralize)
-        self.pen_button.grid(row=0, column=0)
+        self.center_btn = Button(self.root, text='center', command=self.centralize)
+        self.center_btn.grid(row=0, column=0)
 
-        self.brush_button = Button(self.root, text='padd', command=self.padd)
-        self.brush_button.grid(row=0, column=1)
+        self.pad_btn = Button(self.root, text='pad', command=self.pad)
+        self.pad_btn.grid(row=0, column=1)
 
-        self.color_button = Button(self.root, text='send', command=self.send_eval)
-        self.color_button.grid(row=0, column=2)
+        self.send_btn = Button(self.root, text='send', command=self.send_eval)
+        self.send_btn.grid(row=0, column=2)
 
-        self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser)
-        self.eraser_button.grid(row=0, column=3)
+        self.eraser_btn = Button(self.root, text='eraser', command=self.use_eraser)
+        self.eraser_btn.grid(row=0, column=3)
 
 
         # Create a grid of None to store the references to the tiles
@@ -58,7 +58,7 @@ class Paint(object):
         #self.line_width = self.choose_size_button.get()
         self.color = self.DEFAULT_COLOR
         self.eraser_on = False
-        self.active_button = self.pen_button
+        self.active_button = self.center_btn
         self.c.bind("<B1-Motion>", self.callback)
         # self.c.bind('<B1-Motion>', self.callback)
         # self.c.bind('<ButtonRelease-1>', self.reset)
@@ -126,7 +126,7 @@ class Paint(object):
         self.pic = pic
         pass
 
-    def padd(self):
+    def pad(self):
         pic = self.pic
         filter = [
             [0.01, 0.01, 0.01],
