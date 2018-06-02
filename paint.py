@@ -14,16 +14,17 @@ class Paint(object):
     def __init__(self):
         self.root = Tk()
 
-        self.pen_button = Button(self.root, text='ok', command=self.use_ok)
+        self.pen_button = Button(self.root, text='center', command=self.centralize)
         self.pen_button.grid(row=0, column=0)
 
-        self.brush_button = Button(self.root, text='cancel', command=self.use_cancel)
+        self.brush_button = Button(self.root, text='padd', command=self.padd)
         self.brush_button.grid(row=0, column=1)
 
-        self.color_button = Button(self.root, text='clear', command=self.choose_clear)
+        self.color_button = Button(self.root, text='send', command=self.send_eval)
         self.color_button.grid(row=0, column=2)
 
-        self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser)
+        # self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser, relief=GROOVE)
+
         self.eraser_button.grid(row=0, column=3)
 
 
@@ -63,7 +64,7 @@ class Paint(object):
         # self.c.bind('<B1-Motion>', self.callback)
         # self.c.bind('<ButtonRelease-1>', self.reset)
 
-    def use_ok(self):
+    def centralize(self):
         x_pad =[]
         for pad in range(-4,5):
             x_cent = 0
@@ -126,7 +127,7 @@ class Paint(object):
         self.pic = pic
         pass
 
-    def use_cancel(self):
+    def padd(self):
         pic = self.pic
         filter = [
             [0.01, 0.01, 0.01],
@@ -159,7 +160,7 @@ class Paint(object):
 
         pass
 
-    def choose_clear(self):
+    def send_eval(self):
         print("ok")
         mnist_object.eval(self.final)
         #self.eraser_on = False
@@ -167,7 +168,15 @@ class Paint(object):
         #self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
 
     def use_eraser(self):
-        self.eraser_on =True
+        self.eraser_on = not self.eraser_on
+        # # preesed += 'SUNKEN' if self.eraser_on else "RAISED"
+        # if self.eraser_on :
+        #     # self.eraser_button.config(relief=SUNKEN)
+        #     self.eraser_button.configure('SunkableButton.TButton', relief=SUNKEN, foreground='green')
+        # else:
+        #     self.eraser_button.configure('SunkableButton.TButton', relief=RAISED, foreground='red')
+
+
 
     def reset(self, event):
         self.old_x, self.old_y = None, None

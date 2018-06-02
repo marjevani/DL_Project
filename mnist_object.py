@@ -156,8 +156,9 @@ class Net:
                 step = pickle.load(file)
         else:
             step=0
-        for i in range(2001):
+        for i in range(6000):
             batch = self.mnist.train.next_batch(100)
+            ## save statistics for tensorBoard
             if (i+step) % 5 == 0:
                 self.prob.assign(0.4)
                 [train_accuracy, s ,results] = self.sess.run([self.accuracy, self.summ , self.logits], feed_dict={self.x: batch[0], self.y: batch[1]})
@@ -169,6 +170,7 @@ class Net:
                 self.saver.save(self.sess, os.path.join(LOGDIR, "model.ckpt"), (i+step))
                 with open(os.path.join(LOGDIR, "step"), 'wb') as file:
                     pickle.dump((i+step),file)
+            ## Train
             self.sess.run(self.train_step, feed_dict={self.x: batch[0], self.y: batch[1]})
 
     def eval(self,img):
