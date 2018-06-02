@@ -23,8 +23,7 @@ class Paint(object):
         self.color_button = Button(self.root, text='send', command=self.send_eval)
         self.color_button.grid(row=0, column=2)
 
-        # self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser, relief=GROOVE)
-
+        self.eraser_button = Button(self.root, text='eraser', command=self.use_eraser)
         self.eraser_button.grid(row=0, column=3)
 
 
