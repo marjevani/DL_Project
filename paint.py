@@ -1,17 +1,14 @@
 from tkinter import *
-from tkinter.colorchooser import askcolor
 import numpy as np
 import scipy.signal
-import time
 import mnist_object
 ROWS = 20
 COLS = 20
 
 class Paint(object):
-    DEFAULT_PEN_SIZE = 5.0
-    DEFAULT_COLOR = 'black'
 
     def __init__(self):
+        ## build GUI ##
         self.root = Tk()
 
         self.center_btn = Button(self.root, text='center', command=self.centralize)
@@ -23,53 +20,41 @@ class Paint(object):
         self.send_btn = Button(self.root, text='send', command=self.send_eval)
         self.send_btn.grid(row=0, column=2)
 
-        ## Create eraser/painter radio buttons:
+        # Create eraser/painter radio buttons:
         erase_frame = Frame(self.root)
         self.eraser_on = BooleanVar()
-        R1 = Radiobutton(erase_frame, text="painter", variable=self.eraser_on, value=False,
-                         command=self.use_eraser)
-        R2 = Radiobutton(erase_frame, text="eraser", variable=self.eraser_on, value=True,
-                         command=self.use_eraser)
+        self.eraser_on.set(False)
+        R1 = Radiobutton(erase_frame, text="painter", variable=self.eraser_on, value=False)
+        R2 = Radiobutton(erase_frame, text="eraser", variable=self.eraser_on, value=True)
         erase_frame.grid(row=0, column=4)
-
         R1.pack(side="left")
         R2.pack(side="right")
 
         # Create a grid of None to store the references to the tiles
         self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
 
-        self.c = Canvas(self.root, bg='white', width=600, height=600)
-        self.c.grid(row=1, columnspan=5)
+        self.canvas = Canvas(self.root, bg='white', width=600, height=600)
+        self.canvas.grid(row=1, columnspan=5)
+        self.canvas.bind("<B1-Motion>", self.callback)
 
-        self.setup()
         self.root.mainloop()
 
     def callback(self,event):
         # Get rectangle diameters
-        col_width = int(self.c.winfo_width()/COLS)
-        row_height = int(self.c.winfo_height()/ROWS)
+        col_width = int(self.canvas.winfo_width() / COLS)
+        row_height = int(self.canvas.winfo_height() / ROWS)
         # Calculate column and row number
-        col = event.x//col_width
-        row = event.y//row_height
-        # If the tile is not filled, create a rectangle
+        col = min(event.x//col_width, COLS-1)
+        row = min(event.y//row_height, ROWS-1)
+        # paint or erase rectangle
         if not self.eraser_on.get():
             if not self.tiles[row][col]:
+                # If the tile is not filled, create a rectangle
                 colorval = "#%02x%02x%02x" % (0, 0, 0)
-                self.tiles[row][col] =self.c.create_rectangle(col*col_width, row*row_height, (col+1)*col_width, (row+1)*row_height, fill=colorval,outline=colorval)
+                self.tiles[row][col] =self.canvas.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width, (row + 1) * row_height, fill=colorval, outline=colorval)
         else:
-            self.c.delete(self.tiles[row][col])
+            self.canvas.delete(self.tiles[row][col])
             self.tiles[row][col] = None
-
-    def setup(self):
-        self.old_x = None
-        self.old_y = None
-        #self.line_width = self.choose_size_button.get()
-        self.color = self.DEFAULT_COLOR
-        self.eraser_on.set(False)
-        self.active_button = self.center_btn
-        self.c.bind("<B1-Motion>", self.callback)
-        # self.c.bind('<B1-Motion>', self.callback)
-        # self.c.bind('<ButtonRelease-1>', self.reset)
 
     def centralize(self):
         x_pad =[]
@@ -111,11 +96,11 @@ class Paint(object):
             print()
 
 
-        col_width = int(self.c.winfo_width() / 28 )
-        row_height = int(self.c.winfo_height() / 28 )
+        col_width = int(self.canvas.winfo_width() / 28)
+        row_height = int(self.canvas.winfo_height() / 28)
         for row in range(20):
             for col in range(20):
-                self.c.delete(self.tiles[row][col])
+                self.canvas.delete(self.tiles[row][col])
                 self.tiles[row][col] = None
 
         pic = lines_top + pic + lines_bottom
@@ -127,8 +112,8 @@ class Paint(object):
             for col in range(28):
                 num = int(255- pic[row][col])
                 colorval = "#%02x%02x%02x" % (num,num,num)
-                centerd[row][col] = self.c.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width,
-                                                           (row + 1) * row_height, fill=colorval, outline=colorval)
+                centerd[row][col] = self.canvas.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width,
+                                                                 (row + 1) * row_height, fill=colorval, outline=colorval)
         self.pic = pic
 
 
@@ -147,81 +132,20 @@ class Paint(object):
                 print("{0:^7.4f}".format(col), end=" ")
             print()
 
-        col_width = int(self.c.winfo_width() / 28)
-        row_height = int(self.c.winfo_height() / 28)
-        # for row in range(20):
-        #     for col in range(20):
-        #         self.c.delete(self.tiles[row][col])
-        #         self.tiles[row][col] = None
+        col_width = int(self.canvas.winfo_width() / 28)
+        row_height = int(self.canvas.winfo_height() / 28)
 
         centerd = [[None] * 28] * 28
         for row in range(28):
             for col in range(28):
                 num = 255 - int(255 if res[row][col] * res[row][col] > 255 else res[row][col] * res[row][col])
                 colorval = "#%02x%02x%02x" % (num, num, num)
-                centerd[row][col] = self.c.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width,
-                                                            (row + 1) * row_height, fill=colorval, outline=colorval)
+                centerd[row][col] = self.canvas.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width,
+                                                                 (row + 1) * row_height, fill=colorval, outline=colorval)
 
     def send_eval(self):
-        print("ok")
         mnist_object.eval(self.final)
-        #self.eraser_on = False
-        #self.color = askcolor(color=self.color)[1]
-        #self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
-
-    def use_eraser(self):
-        pass
-
-
-    def reset(self, event):
-        self.old_x, self.old_y = None, None
 
 
 if __name__ == '__main__':
-    # filter = [
-    #     [0.1 / 8, 0.1 / 8, 0.1 / 8],
-    #     [0.1 / 8, 0.9, 0.1 / 8],
-    #     [0.1 / 8, 0.1 / 8, 0.1 / 8]
-    # ]
-    # print(filter)
-    #        res = sp.convolve2d(pic,filter,mode='same')
-
-    # for row in filter:
-    #     for col in row:
-    #         print("{0:^3}".format(col), end=" ")
-    #     print()
-
     Paint()
-
-        #
-# import tkinter as tk
-#
-# # Set number of rows and columns
-# ROWS = 20
-# COLS = 20
-#
-# # Create a grid of None to store the references to the tiles
-# tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
-#
-# def callback(event):
-#     # Get rectangle diameters
-#     col_width = int(c.winfo_width()/COLS)
-#     row_height = int(c.winfo_height()/ROWS)
-#     # Calculate column and row number
-#     col = event.x//col_width
-#     row = event.y//row_height
-#     # If the tile is not filled, create a rectangle
-#     if not tiles[row][col]:
-#         tiles[row][col] = c.create_rectangle(col*col_width, row*row_height, (col+1)*col_width, (row+1)*row_height, fill="black")
-#     # If the tile is filled, delete the rectangle and clear the reference
-#     # else:
-#     #     c.delete(tiles[row][col])
-#     #     tiles[row][col] = None
-#
-# # Create the window, a canvas and the mouse click event binding
-# root = tk.Tk()
-# c = tk.Canvas(root, width=500, height=500, borderwidth=5, background='white')
-# c.pack()
-# c.bind("<B1-Motion>", callback)
-#
-# root.mainloop()

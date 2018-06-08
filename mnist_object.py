@@ -37,7 +37,7 @@ class Net:
         self.mnist = tf.contrib.learn.datasets.mnist.read_data_sets(train_dir=LOGDIR + 'data', one_hot=True)
 
         ### Get a sprite and labels file for the embedding projector  ###
-#        urlretrieve(GITHUB_URL + 'labels_1024.tsv', LOGDIR + 'labels_1024.tsv')
+ #       urlretrieve(GITHUB_URL + 'labels_1024.tsv', LOGDIR + 'labels_1024.tsv')
  #       urlretrieve(GITHUB_URL + 'sprite_1024.png', LOGDIR + 'sprite_1024.png')
 
 
@@ -178,6 +178,10 @@ class Net:
         [train_accuracy, logits,] = self.sess.run([self.accuracy, self.logits], feed_dict={self.x: [img], self.y: [[0]*10]})
         print(numpy.exp(logits))
         print(logits)
+        eval_list = logits.tolist()[0]
+        eval_val = eval_list.index(max(eval_list))
+        print("The number is: " + str(eval_val))
+
 
 def make_hparam_string(learning_rate, use_two_fc, use_two_conv):
     conv_param = "conv=2" if use_two_conv else "conv=1"
