@@ -2,5 +2,6 @@
 .__pycache__/
 *.pyc
 *.gz
+*.local
 
 !logs_new_model_v04/**
