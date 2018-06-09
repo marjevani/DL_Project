@@ -2,6 +2,8 @@ from tkinter import *
 import numpy as np
 import scipy.signal
 import mnist_object
+from util import *
+
 ROWS = 20
 COLS = 20
 
@@ -78,7 +80,7 @@ class Paint(object):
 
         x_cent,y_cent = x_pad[0][0],y_pad[0][0]
 
-        print(x_cent,y_cent)
+        debug_print(x_cent,y_cent)
 
         lines_top = [[0] * 20]*  (4-y_cent )
         lines_bottom = [[0] * 20] * (4+y_cent )
@@ -91,9 +93,10 @@ class Paint(object):
             tmp = []
             pic.append(tmp)
             for col in row:
-                print("{0:^3}".format(0 if col == None else 255),end= " ")
+                print_val = "{0:^3}".format(0 if col == None else 255)
+                debug_print(print_val,end= " ")
                 tmp.append(0 if col == None else 255)
-            print()
+            debug_print()
 
 
         col_width = int(self.canvas.winfo_width() / 28)
@@ -104,7 +107,7 @@ class Paint(object):
                 self.tiles[row][col] = None
 
         pic = lines_top + pic + lines_bottom
-        print(np.array(lines_left).shape, np.array(pic).shape, np.array(lines_rigth).shape)
+        debug_print(np.array(lines_left).shape, np.array(pic).shape, np.array(lines_rigth).shape)
         pic = np.concatenate((lines_left, pic, lines_rigth), axis=1)
 
         centerd = [[None]*28]*28
@@ -124,13 +127,14 @@ class Paint(object):
             [0.01, 1, 0.01],
             [0.01, 0.01, 0.01]
         ]
-        print(filter)
+        debug_print(filter)
         res = scipy.signal.convolve2d(pic, filter, mode='same')
         self.final = res
         for row in res:
             for col in row:
-                print("{0:^7.4f}".format(col), end=" ")
-            print()
+                print_val = "{0:^7.4f}".format(col)
+                debug_print(print_val, end=" ")
+            debug_print()
 
         col_width = int(self.canvas.winfo_width() / 28)
         row_height = int(self.canvas.winfo_height() / 28)

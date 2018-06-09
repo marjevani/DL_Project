@@ -20,6 +20,8 @@ import sys
 import urllib
 import os.path
 import numpy as np
+from util import *
+
 if sys.version_info[0] >= 3:
     from urllib.request import urlretrieve
 else:
@@ -176,8 +178,8 @@ class Net:
     def eval(self,img):
         self.prob.assign(1)
         [train_accuracy, logits,] = self.sess.run([self.accuracy, self.logits], feed_dict={self.x: [img], self.y: [[0]*10]})
-        print(numpy.exp(logits))
-        print(logits)
+        debug_print(numpy.exp(logits))
+        debug_print(logits)
         eval_list = logits.tolist()[0]
         eval_val = eval_list.index(max(eval_list))
         sum_list = (sum(eval_list))
