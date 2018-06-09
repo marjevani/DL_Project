@@ -180,6 +180,16 @@ class Net:
         print(logits)
         eval_list = logits.tolist()[0]
         eval_val = eval_list.index(max(eval_list))
+        sum_list = (sum(eval_list))
+        #eval_list_percentage= [ (x/sum_list)*100 for x in eval_list ]
+        eval_list_percentage=[]
+        for i in range(len(eval_list)):
+           eval_list_percentage.append((eval_list[i] / sum_list)*100)
+        index=0
+        for num in eval_list_percentage:
+          print('Digit', index,':',round(num,2))
+          index += 1
+
         print("The number is: " + str(eval_val))
 
 
