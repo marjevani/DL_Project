@@ -144,8 +144,8 @@ class Net:
         config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
         embedding_config = config.embeddings.add()
         embedding_config.tensor_name = self.embedding.name
-        embedding_config.sprite.image_path = 'sprite_1024.png'
-        embedding_config.metadata_path = 'labels_1024.tsv'
+        embedding_config.sprite.image_path = 'sprite_10k.png'
+        embedding_config.metadata_path = 'labels_10k.tsv'
         # Specify the width and height of a single thumbnail.
         embedding_config.sprite.single_image_dim.extend([28, 28])
         tf.contrib.tensorboard.plugins.projector.visualize_embeddings(self.writer, config)
@@ -166,7 +166,7 @@ class Net:
                 self.writer.add_summary(s, (i+step))
             if (i+step) % 500 == 0:
                 self.prob.assign(1)
-                self.sess.run(self.assignment, feed_dict={self.x: self.mnist.test.images[:1024], self.y: self.mnist.test.labels[:1024]})
+                self.sess.run(self.assignment, feed_dict={self.x: self.mnist.test.images[:1024], self.y: self.mnist.test.labels[:10000]})
                 self.saver.save(self.sess, os.path.join(LOGDIR, "model.ckpt"), (i+step))
                 with open(os.path.join(LOGDIR, "step"), 'wb') as file:
                     pickle.dump((i+step),file)

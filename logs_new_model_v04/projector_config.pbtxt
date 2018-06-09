@@ -1,8 +1,8 @@
 embeddings {
   tensor_name: "test_embedding:0"
-  metadata_path: "labels_1024.tsv"
+  metadata_path: "labels_10k.tsv"
   sprite {
-    image_path: "sprite_1024.png"
+    image_path: "sprite_10k.png"
     single_image_dim: 28
     single_image_dim: 28
   }
