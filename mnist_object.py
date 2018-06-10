@@ -20,6 +20,7 @@ import sys
 import urllib
 import os.path
 import numpy as np
+from datetime import datetime
 from util import *
 
 if sys.version_info[0] >= 3:
@@ -131,7 +132,14 @@ class Net:
         self.embedding = tf.Variable(tf.zeros([1024, embedding_size]), name="test_embedding")
         self.assignment = self.embedding.assign(embedding_input)
 
-        self.sess = tf.Session()
+        # enable GPU
+        config = tf.ConfigProto()
+        debug_print("running on " + ("GPU" if tf.device('/gpu:0') else "CPU"))
+        with tf.device('/gpu:0'):
+                config.gpu_options.allow_growth = True
+            # config.gpu_options.per_process_gpu_memory_fraction = 0.4
+
+        self.sess = tf.Session(config=config)
         self.saver = tf.train.Saver()
 
         if(self.resume):
@@ -158,7 +166,7 @@ class Net:
                 step = pickle.load(file)
         else:
             step=0
-        for i in range(6000):
+        for i in range(6000*2):
             batch = self.mnist.train.next_batch(100)
             ## save statistics for tensorBoard
             if (i+step) % 5 == 0:
@@ -202,6 +210,9 @@ def make_hparam_string(learning_rate, use_two_fc, use_two_conv):
 
 
 def main():
+    # start time performance measure
+    start_time = datetime.now()
+    debug_print("starting training performance measure:")
     # You can try adding some more learning rates
     for learning_rate in [1E-4]:
 
@@ -210,12 +221,15 @@ def main():
             for use_two_conv in [True]:
                 # Construct a hyperparameter string for each one (example: "lr_1E-3,fc=2,conv=2)
                 hparam = make_hparam_string(learning_rate, use_two_fc, use_two_conv)
-                print('Starting run for %s' % hparam)
+                debug_print('Starting run for %s' % hparam)
 
                 # Actually run with the new settings
                 net = Net()
                 net.mnist_model(learning_rate, use_two_fc, use_two_conv, hparam)
                 net.train()
+
+    end_time = datetime.now()
+    debug_print('Training Duration: {}'.format(end_time - start_time))
 
 def eval(img):
     # You can try adding some more learning rates
@@ -226,7 +240,7 @@ def eval(img):
             for use_two_conv in [True]:
                 # Construct a hyperparameter string for each one (example: "lr_1E-3,fc=2,conv=2)
                 hparam = make_hparam_string(learning_rate, use_two_fc, use_two_conv)
-                print('Starting run for %s' % hparam)
+                debug_print('Starting run for %s' % hparam)
                 reshaped_img = []
                 # Actually run with the new settings
                 net = Net()
