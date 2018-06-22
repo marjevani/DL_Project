@@ -29,7 +29,7 @@ else:
     from urllib import urlretrieve
 import pickle
 
-LOGDIR = 'logs_new_model_v05/'
+LOGDIR = 'logs_new_model_v04/'
 GITHUB_URL = 'https://raw.githubusercontent.com/mamcgrath/TensorBoard-TF-Dev-Summit-Tutorial/master/'
 
 
@@ -103,12 +103,12 @@ class Net:
 
 
         flattened = tf.reshape(pool2, [-1, 7 * 7 * 64])
-        fc1 = self.fc_layer(flattened, 7 * 7 * 64, 10000, "fc1")
+        fc1 = self.fc_layer(flattened, 7 * 7 * 64, 1024, "fc1")
         self.prob =  tf.Variable(0.4, name="prob")
         dp = self.drop_out_layer(fc1,self.prob,"drop")
         embedding_input = fc1
-        embedding_size = 10000
-        self.logits = self.fc_layer(dp, 10000, 10, "fc2")
+        embedding_size = 1024
+        self.logits = self.fc_layer(dp, 1024, 10, "fc2")
 
 
         with tf.name_scope("cross_entropy"):
@@ -129,7 +129,7 @@ class Net:
 
         self.summ = tf.summary.merge_all()
 
-        self.embedding = tf.Variable(tf.zeros([10000, embedding_size]), name="test_embedding")
+        self.embedding = tf.Variable(tf.zeros([1024, embedding_size]), name="test_embedding")
         self.assignment = self.embedding.assign(embedding_input)
 
         # enable GPU
@@ -154,8 +154,8 @@ class Net:
         config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
         embedding_config = config.embeddings.add()
         embedding_config.tensor_name = self.embedding.name
-        embedding_config.sprite.image_path = 'label_10k.png'
-        embedding_config.metadata_path = 'label_10k.tsv'
+        embedding_config.sprite.image_path = 'sprite_1024.png'
+        embedding_config.metadata_path = 'labels_1024.tsv'
         # Specify the width and height of a single thumbnail.
         embedding_config.sprite.single_image_dim.extend([28, 28])
         tf.contrib.tensorboard.plugins.projector.visualize_embeddings(self.writer, config)
@@ -176,7 +176,7 @@ class Net:
                 self.writer.add_summary(s, (i+step))
             if (i+step) % 500 == 0:
                 self.prob.assign(1)
-                self.sess.run(self.assignment, feed_dict={self.x: self.mnist.test.images, self.y: self.mnist.test.labels})
+                self.sess.run(self.assignment, feed_dict={self.x: self.mnist.test.images[:1024], self.y: self.mnist.test.labels[:1024]})
                 self.saver.save(self.sess, os.path.join(LOGDIR, "model.ckpt"), (i+step))
                 with open(os.path.join(LOGDIR, "step"), 'wb') as file:
                     pickle.dump((i+step),file)
