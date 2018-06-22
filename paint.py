@@ -13,14 +13,19 @@ class Paint(object):
         ## build GUI ##
         self.root = Tk()
 
-        # self.center_btn = Button(self.root, text='center', command=self.centralize)
-        # self.center_btn.grid(row=0, column=0)
-        #
-        # self.pad_btn = Button(self.root, text='pad', command=self.pad)
-        # self.pad_btn.grid(row=0, column=1)
+        # Create a grid of None to store the references to the tiles
+        self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
+
+        self.canvas = Canvas(self.root, bg='white', width=600, height=600)
+        self.canvas.grid(row=1, columnspan=5)
+        self.canvas.bind("<B1-Motion>", self.callback)
+
+        # create buttons
+        self.clear_btn = Button(self.root, text='clear', command=self.clear_canvas)
+        self.clear_btn.grid(row=0, column=0)
 
         self.send_btn = Button(self.root, text='send', command=self.send_eval)
-        self.send_btn.grid(row=0, column=2)
+        self.send_btn.grid(row=0, column=1)
 
         # Create eraser/painter radio buttons:
         erase_frame = Frame(self.root)
@@ -31,13 +36,6 @@ class Paint(object):
         erase_frame.grid(row=0, column=4)
         R1.pack(side="left")
         R2.pack(side="right")
-
-        # Create a grid of None to store the references to the tiles
-        self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
-
-        self.canvas = Canvas(self.root, bg='white', width=600, height=600)
-        self.canvas.grid(row=1, columnspan=5)
-        self.canvas.bind("<B1-Motion>", self.callback)
 
         self.root.mainloop()
 
@@ -60,13 +58,16 @@ class Paint(object):
 
 
     def send_eval(self):
-        processed = self.manager.pre_process(self.tiles)
-        self.show_img(processed*processed)
+        processed_img = self.manager.pre_process(self.tiles)
+        self.show_img(processed_img*processed_img)
         self.manager.send_eval()
 
+    def clear_canvas(self):
+        self.canvas.delete("all")
+        self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
+
     def show_img(self, img):
-        # clear canvas
-        self.canvas.delete("all");
+        self.canvas.delete("all")
         # paint img on canvas
         col_width = int(self.canvas.winfo_width() / 28)
         row_height = int(self.canvas.winfo_height() / 28)
@@ -80,8 +81,6 @@ class Paint(object):
                                                                  (col + 1) * col_width,
                                                                  (row + 1) * row_height, fill=colorval,
                                                                  outline=colorval)
-
-
 
 
 # if __name__ == '__main__':

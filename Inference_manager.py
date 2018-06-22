@@ -7,17 +7,13 @@ import numpy as np
 class Inference_manager(object):
 
     def __init__(self):
-        orig_img = 0
-        processes_img = 0
-        # self.painter = paint.Paint(self)
         paint.Paint(self)
 
     def pre_process(self, tile):
         self.orig_img = tile
         self.centralize()
         self.pad()
-        # self.painter.show_img(self.processes_img)
-        return self.processes_img
+        return self.processed_img
 
     def centralize(self):
         x_pad = []
@@ -64,34 +60,30 @@ class Inference_manager(object):
         pic = np.concatenate((lines_left, pic, lines_rigth), axis=1)
 
         # self.painter.show_img(pic)
-        self.processes_img = pic
+        self.processed_img = pic
 
 
     def pad(self):
-        pic = self.processes_img
         filter = [
             [0.01, 0.01, 0.01],
             [0.01, 1, 0.01],
             [0.01, 0.01, 0.01]
         ]
         debug_print(filter)
-        res = scipy.signal.convolve2d(self.processes_img, filter, mode='same')
-        self.processes_img = res
+        res = scipy.signal.convolve2d(self.processed_img, filter, mode='same')
+        self.processed_img = res
         for row in res:
             for col in row:
                 print_val = "{0:^7.4f}".format(col)
                 debug_print(print_val, end=" ")
             debug_print()
 
-        # self.painter.show_img(self.processes_img * self.processes_img)
-
-
     def send_eval(self):
-        mnist_object.eval(self.processes_img)
+        mnist_object.eval(self.processed_img)
 
 
 def main():
-    im = Inference_manager()
+    Inference_manager()
 
 if __name__ == '__main__':
     main()

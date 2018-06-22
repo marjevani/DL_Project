@@ -134,7 +134,7 @@ class Net:
 
         # enable GPU
         config = tf.ConfigProto()
-        debug_print("running on " + ("GPU" if tf.device('/gpu:0') else "CPU"))
+        debug_print( "don't" if not tf.device('/gpu:0') else "" + "recognized GPU" )
         with tf.device('/gpu:0'):
                 config.gpu_options.allow_growth = True
             # config.gpu_options.per_process_gpu_memory_fraction = 0.4
@@ -186,13 +186,13 @@ class Net:
     def eval(self,img):
         self.prob.assign(1)
         [train_accuracy, logits,] = self.sess.run([self.accuracy, self.logits], feed_dict={self.x: [img], self.y: [[0]*10]})
-        debug_print(numpy.exp(logits))
+        # debug_print(numpy.exp(logits))
         debug_print(logits)
         eval_list = logits.tolist()[0]
         eval_val = eval_list.index(max(eval_list))
         sum_list = (sum(eval_list))
-        #eval_list_percentage= [ (x/sum_list)*100 for x in eval_list ]
         eval_list_percentage=[]
+        #eval_list_percentage= [ (x/sum_list)*100 for x in eval_list ]
         for i in range(len(eval_list)):
            eval_list_percentage.append((eval_list[i] / sum_list)*100)
         index=0
