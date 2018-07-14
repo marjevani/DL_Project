@@ -1,13 +1,15 @@
-import paint
+from paint import Paint
+import threading
 import mnist_object
 from util import *
 import scipy.signal
 import numpy as np
+from tkinter import *
 
 class Inference_manager(object):
 
     def __init__(self):
-        paint.Paint(self)
+        paint = Paint(self)
 
     def pre_process(self, tile):
         self.orig_img = tile
@@ -79,11 +81,22 @@ class Inference_manager(object):
             debug_print()
 
     def send_eval(self):
-        mnist_object.eval(self.processed_img)
+        # create evaluate thread
+        t = threading.Thread(target=self.send_eval_mt, args=[self.processed_img])
+        t.start()
+
+
+    def send_eval_mt(self, processed_img):
+        mnist_object.eval(processed_img)
+
+        # show the result in different popup window
+
+
 
 
 def main():
     Inference_manager()
 
+# use this main to start application pain and eval program
 if __name__ == '__main__':
     main()

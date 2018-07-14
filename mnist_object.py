@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-import os
 
-import numpy
+import os
 import tensorflow as tf
 import sys
-import urllib
 import os.path
-import numpy as np
 from datetime import datetime
 from util import *
 
@@ -39,12 +36,7 @@ class Net:
         ### MNIST EMBEDDINGS ###
         self.mnist = tf.contrib.learn.datasets.mnist.read_data_sets(train_dir=LOGDIR + 'data', one_hot=True)
 
-        ### Get a sprite and labels file for the embedding projector  ###
- #       urlretrieve(GITHUB_URL + 'labels_1024.tsv', LOGDIR + 'labels_1024.tsv')
- #       urlretrieve(GITHUB_URL + 'sprite_1024.png', LOGDIR + 'sprite_1024.png')
-
-
-    # Add convolution layer
+    ## Define CNN Layers ##
     @staticmethod
     def conv_layer(input, size_in, size_out, name="conv"):
         with tf.name_scope(name):
@@ -69,7 +61,7 @@ class Net:
             return tf.nn.dropout(x=input,keep_prob=prob,name=name)
 
     @staticmethod
-    # Add fully connected layer
+    # fully connected layer
     def fc_layer(input, size_in, size_out, name="fc"):
         with tf.name_scope(name):
             w = tf.Variable(tf.truncated_normal([size_in, size_out], stddev=0.1), name="W")
@@ -81,7 +73,7 @@ class Net:
             return act
 
 
-    def mnist_model(self,learning_rate, use_two_conv, use_two_fc, hparam):
+    def mnist_model(self,learning_rate):
         tf.reset_default_graph()
 
         # Setup placeholders, and reshape the data
@@ -90,7 +82,7 @@ class Net:
         tf.summary.image('input', x_image, 3)
         self.y = tf.placeholder(tf.float32, shape=[None, 10], name="labels")
 
-        # create conv layers and connect them:
+        # create 2 conv layers and connect them:
         conv1_a = self.conv_layer(x_image, 1, 32, "conv1_a")
         conv1_b = self.conv_layer(conv1_a, 32, 32, "conv1_b")
         conv1_C = self.conv_layer(conv1_b, 32, 32, "conv1_c")
@@ -100,7 +92,6 @@ class Net:
         conv2_b = self.conv_layer(conv2_a, 64, 64, "conv2_b")
         conv2_C = self.conv_layer(conv2_b, 64, 64, "conv2_c")
         pool2 =   self.pooling_layer(conv2_C ,"pool2" )
-
 
         flattened = tf.reshape(pool2, [-1, 7 * 7 * 64])
         fc1 = self.fc_layer(flattened, 7 * 7 * 64, 1024, "fc1")
@@ -119,10 +110,8 @@ class Net:
 
         with tf.name_scope("train"):
             self.train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
-       # print(tf.reduce_sum(tf.exp(self.logits), 1))
-        #self.data =  tf.reduce_sum(tf.exp(self.logits), 1)#tf.exp(self.logits) / tf.reduce_sum(tf.exp(self.logits), 1)
-        with tf.name_scope("accuracy"):
 
+        with tf.name_scope("accuracy"):
             correct_prediction = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.y, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
             tf.summary.scalar("accuracy", self.accuracy)
@@ -132,16 +121,15 @@ class Net:
         self.embedding = tf.Variable(tf.zeros([1024, embedding_size]), name="test_embedding")
         self.assignment = self.embedding.assign(embedding_input)
 
-        # enable GPU
+        # enable GPU train/inference if possible
         config = tf.ConfigProto()
         debug_print( "don't" if not tf.device('/gpu:0') else "" + "recognized GPU" )
         with tf.device('/gpu:0'):
                 config.gpu_options.allow_growth = True
-            # config.gpu_options.per_process_gpu_memory_fraction = 0.4
-
         self.sess = tf.Session(config=config)
         self.saver = tf.train.Saver()
 
+        # TODO - do we really need this?
         if(self.resume):
             self.saver.restore(self.sess, tf.train.latest_checkpoint(LOGDIR))
         else:
@@ -150,7 +138,7 @@ class Net:
         self.writer = tf.summary.FileWriter(LOGDIR)
         self.writer.add_graph(self.sess.graph)
 
-
+        ## define embedding setting for TensorBoard
         config = tf.contrib.tensorboard.plugins.projector.ProjectorConfig()
         embedding_config = config.embeddings.add()
         embedding_config.tensor_name = self.embedding.name
@@ -160,6 +148,7 @@ class Net:
         embedding_config.sprite.single_image_dim.extend([28, 28])
         tf.contrib.tensorboard.plugins.projector.visualize_embeddings(self.writer, config)
 
+
     def train(self):
         if os.path.exists(os.path.join(LOGDIR,"step")):
             with open(os.path.join(LOGDIR, "step"), 'rb') as file:
@@ -168,11 +157,10 @@ class Net:
             step=0
         for i in range(6000*2):
             batch = self.mnist.train.next_batch(100)
-            ## save statistics for tensorBoard
+            ## save statistics for tensorBoard (1K data test)
             if (i+step) % 5 == 0:
                 self.prob.assign(0.4)
                 [train_accuracy, s ,results] = self.sess.run([self.accuracy, self.summ , self.logits], feed_dict={self.x: batch[0], self.y: batch[1]})
-               # print(results)
                 self.writer.add_summary(s, (i+step))
             if (i+step) % 500 == 0:
                 self.prob.assign(1)
@@ -180,26 +168,30 @@ class Net:
                 self.saver.save(self.sess, os.path.join(LOGDIR, "model.ckpt"), (i+step))
                 with open(os.path.join(LOGDIR, "step"), 'wb') as file:
                     pickle.dump((i+step),file)
+
             ## Train
             self.sess.run(self.train_step, feed_dict={self.x: batch[0], self.y: batch[1]})
 
+
     def eval(self,img):
         self.prob.assign(1)
-        [train_accuracy, logits,] = self.sess.run([self.accuracy, self.logits], feed_dict={self.x: [img], self.y: [[0]*10]})
+        [train_accuracy, logits] = self.sess.run([self.accuracy, self.logits], feed_dict={self.x: [img], self.y: [[0]*10]})
         # debug_print(numpy.exp(logits))
         debug_print(logits)
         eval_list = logits.tolist()[0]
         eval_val = eval_list.index(max(eval_list))
         sum_list = (sum(eval_list))
-        eval_list_percentage=[]
-        #eval_list_percentage= [ (x/sum_list)*100 for x in eval_list ]
-        for i in range(len(eval_list)):
-           eval_list_percentage.append((eval_list[i] / sum_list)*100)
-        index=0
+
+        # print evaluate statistics and resualts #
+        #eval_list_percentage=[]
+        # for i in range(len(eval_list)):
+        #    eval_list_percentage.append((eval_list[i] / sum_list)*100)
+
+        eval_list_percentage = [(x / sum_list) * 100 for x in eval_list]
+        index = 0
         for num in eval_list_percentage:
           print('Digit', index,':',round(num,2))
           index += 1
-
         print("The number is: " + str(eval_val))
 
 
@@ -209,13 +201,12 @@ def make_hparam_string(learning_rate, use_two_fc, use_two_conv):
     return "lr_%.0E,%s,%s" % (learning_rate, conv_param, fc_param)
 
 
-def main():
-    # start time performance measure
+def train_mnist_CNN():
+    # start timer training for performance measure
     start_time = datetime.now()
     debug_print("starting training performance measure:")
     # You can try adding some more learning rates
     for learning_rate in [1E-4]:
-
         # Include "False" as a value to try different model architectures
         for use_two_fc in [True]:
             for use_two_conv in [True]:
@@ -225,32 +216,36 @@ def main():
 
                 # Actually run with the new settings
                 net = Net()
-                net.mnist_model(learning_rate, use_two_fc, use_two_conv, hparam)
+                net.mnist_model(learning_rate)
                 net.train()
 
     end_time = datetime.now()
     debug_print('Training Duration: {}'.format(end_time - start_time))
 
+
 def eval(img):
+    # TODO - clean unsed "for" loops
     # You can try adding some more learning rates
     for learning_rate in [1E-4]:
-
         # Include "False" as a value to try different model architectures
         for use_two_fc in [True]:
             for use_two_conv in [True]:
                 # Construct a hyperparameter string for each one (example: "lr_1E-3,fc=2,conv=2)
                 hparam = make_hparam_string(learning_rate, use_two_fc, use_two_conv)
                 debug_print('Starting run for %s' % hparam)
+
+                # prepare CNN for evaluate
                 reshaped_img = []
-                # Actually run with the new settings
                 net = Net()
                 for row in img:
                     for col in row:
                         reshaped_img.append(col)
+                net.mnist_model(learning_rate)
 
-                net.mnist_model(learning_rate, use_two_fc, use_two_conv, hparam)
+                # evaluate for the receiving img
                 net.eval(reshaped_img)
 
 
+# use main for CNN training only
 if __name__ == '__main__':
-    main()
+    train_mnist_CNN()

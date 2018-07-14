@@ -1,12 +1,10 @@
 from tkinter import *
-import time
 
 
 ROWS = 20
 COLS = 20
 
 class Paint(object):
-
     def __init__(self, im):
         self.manager = im
 
@@ -38,6 +36,7 @@ class Paint(object):
         R2.pack(side="right")
 
         self.root.mainloop()
+
 
     def callback(self,event):
         # Get rectangle diameters
