@@ -4,12 +4,13 @@ import mnist_object
 from util import *
 import scipy.signal
 import numpy as np
-from tkinter import *
+from tkinter import messagebox
+
 
 class Inference_manager(object):
 
     def __init__(self):
-        paint = Paint(self)
+        Paint(self)
 
     def pre_process(self, tile):
         self.orig_img = tile
@@ -80,18 +81,17 @@ class Inference_manager(object):
                 debug_print(print_val, end=" ")
             debug_print()
 
-    def send_eval(self):
+    def send_eval(self, painter):
         # create evaluate thread
-        t = threading.Thread(target=self.send_eval_mt, args=[self.processed_img])
+        t = threading.Thread(target=self.send_eval_mt, args=[self.processed_img, painter])
         t.start()
 
 
-    def send_eval_mt(self, processed_img):
-        mnist_object.eval(processed_img)
-
+    def send_eval_mt(self, processed_img, painter):
+        digit = mnist_object.eval(processed_img)
         # show the result in different popup window
-
-
+        painter.set_status("The digit '" + str(digit) + "' Evaluated!!!")
+        messagebox.showinfo("you just paint the digit:", str(digit))
 
 
 def main():

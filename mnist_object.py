@@ -32,9 +32,14 @@ GITHUB_URL = 'https://raw.githubusercontent.com/mamcgrath/TensorBoard-TF-Dev-Sum
 
 class Net:
     def __init__(self):
+        if not DEBUG:
+            #don't print tensorflow debug messages
+            os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
         self.resume = os.path.isdir(LOGDIR)
         ### MNIST EMBEDDINGS ###
         self.mnist = tf.contrib.learn.datasets.mnist.read_data_sets(train_dir=LOGDIR + 'data', one_hot=True)
+
 
     ## Define CNN Layers ##
     @staticmethod
@@ -176,23 +181,18 @@ class Net:
     def eval(self,img):
         self.prob.assign(1)
         [train_accuracy, logits] = self.sess.run([self.accuracy, self.logits], feed_dict={self.x: [img], self.y: [[0]*10]})
-        # debug_print(numpy.exp(logits))
         debug_print(logits)
         eval_list = logits.tolist()[0]
-        eval_val = eval_list.index(max(eval_list))
         sum_list = (sum(eval_list))
 
-        # print evaluate statistics and resualts #
-        #eval_list_percentage=[]
-        # for i in range(len(eval_list)):
-        #    eval_list_percentage.append((eval_list[i] / sum_list)*100)
-
+        eval_val = eval_list.index(max(eval_list))
         eval_list_percentage = [(x / sum_list) * 100 for x in eval_list]
         index = 0
         for num in eval_list_percentage:
           print('Digit', index,':',round(num,2))
           index += 1
         print("The number is: " + str(eval_val))
+        return eval_val
 
 
 def make_hparam_string(learning_rate, use_two_fc, use_two_conv):
@@ -243,7 +243,7 @@ def eval(img):
                 net.mnist_model(learning_rate)
 
                 # evaluate for the receiving img
-                net.eval(reshaped_img)
+                return net.eval(reshaped_img)
 
 
 # use main for CNN training only

@@ -1,11 +1,13 @@
 from tkinter import *
-
+import threading
 
 ROWS = 20
 COLS = 20
 
 class Paint(object):
     def __init__(self, im):
+        self.lock = threading.RLock()
+
         self.manager = im
 
         ## build GUI ##
@@ -35,8 +37,11 @@ class Paint(object):
         R1.pack(side="left")
         R2.pack(side="right")
 
-        self.root.mainloop()
+        # Add status bar
+        self.status_bar = Label(self.root, text="Paint your digit", bd=1, relief=SUNKEN, anchor=W,font=('TkDefaultFont', 18))
+        self.status_bar.grid(column=0, row=2, columnspan=5, sticky='we')
 
+        self.root.mainloop()
 
     def callback(self,event):
         # Get rectangle diameters
@@ -57,9 +62,14 @@ class Paint(object):
 
 
     def send_eval(self):
+        eval_string = "Evaluating your paint now.."
+        if(self.status_bar['text'] == eval_string ):
+            # allready Evaluating - stop
+            return
+        self.set_status("Evaluating your paint now..")
         processed_img = self.manager.pre_process(self.tiles)
         self.show_img(processed_img*processed_img)
-        self.manager.send_eval()
+        self.manager.send_eval(self)
 
     def clear_canvas(self):
         self.canvas.delete("all")
@@ -81,6 +91,10 @@ class Paint(object):
                                                                  (row + 1) * row_height, fill=colorval,
                                                                  outline=colorval)
 
-
-# if __name__ == '__main__':
-#     p = Paint()
+    # this function calls from outside
+    # those, need to be synchronized
+    def set_status(self, msg=''):
+        # synchronized function
+        self.lock.acquire()
+        self.status_bar.configure(text=msg)
+        self.lock.release()
