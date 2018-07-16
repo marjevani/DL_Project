@@ -4,6 +4,13 @@ import threading
 ROWS = 20
 COLS = 20
 
+### Paint module has to get his manager in constructor.
+### manager has to implimant:
+    #  "pre_proccess" function for pre processing the img before evaluate.
+    # "send_eval" for evalutaing the img data
+    # this function can update Paint status bar with the result by using "paint.set_status" function.
+    # NOTICE - you may wants to evaluate in different thread to prevent GUI freezing
+
 class Paint(object):
     def __init__(self, im):
         self.lock = threading.RLock()

@@ -6,6 +6,8 @@ import scipy.signal
 import numpy as np
 from tkinter import messagebox
 
+### init Paint and provide function for his implementation.
+### NOTICE - evaluate calculate in different thread to prevent GUI freezing
 
 class Inference_manager(object):
 
@@ -74,7 +76,7 @@ class Inference_manager(object):
     def pad(self):
         filter = [
             [0.01, 0.01, 0.01],
-            [0.01, 1, 0.01],
+            [0.01, 1,    0.01],
             [0.01, 0.01, 0.01]
         ]
         debug_print(filter)
@@ -86,11 +88,11 @@ class Inference_manager(object):
                 debug_print(print_val, end=" ")
             debug_print()
 
+
     def send_eval(self, painter):
         # create evaluate thread
         t = threading.Thread(target=self.send_eval_mt, args=[self.processed_img, painter])
         t.start()
-
 
     def send_eval_mt(self, processed_img, painter):
         digit = mnist_object.eval(processed_img)
@@ -99,9 +101,7 @@ class Inference_manager(object):
         messagebox.showinfo("you just paint the digit:", str(digit))
 
 
-def main():
-    Inference_manager()
-
 # use this main to start application pain and eval program
 if __name__ == '__main__':
-    main()
+    Inference_manager()
+
