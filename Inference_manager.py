@@ -16,6 +16,11 @@ class Inference_manager(object):
         self.orig_img = tile
         self.centralize()
         self.pad()
+
+        for row in range(28):
+            for col in range(28):
+                self.processed_img[row, col] = min(self.processed_img[row, col]*self.processed_img[row, col], 255)
+
         return self.processed_img
 
     def centralize(self):

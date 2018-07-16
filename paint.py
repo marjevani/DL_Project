@@ -7,7 +7,6 @@ COLS = 20
 class Paint(object):
     def __init__(self, im):
         self.lock = threading.RLock()
-
         self.manager = im
 
         ## build GUI ##
@@ -37,6 +36,9 @@ class Paint(object):
         R1.pack(side="left")
         R2.pack(side="right")
 
+        # boolean lock. logic - can't paint after send img & before clear canvas
+        self.can_paint = True
+
         # Add status bar
         self.status_bar = Label(self.root, text="Paint your digit", bd=1, relief=SUNKEN, anchor=W,font=('TkDefaultFont', 18))
         self.status_bar.grid(column=0, row=2, columnspan=5, sticky='we')
@@ -51,7 +53,9 @@ class Paint(object):
         col = min(event.x//col_width, COLS-1)
         row = min(event.y//row_height, ROWS-1)
         # paint or erase rectangle
-        if not self.eraser_on.get():
+        if not self.can_paint:
+            self.set_status("ERROR - please clear before painting!!!")
+        elif not self.eraser_on.get():
             if not self.tiles[row][col]:
                 # If the tile is not filled, create a rectangle
                 colorval = "#%02x%02x%02x" % (0, 0, 0)
@@ -62,18 +66,23 @@ class Paint(object):
 
 
     def send_eval(self):
+        # change and check status
         eval_string = "Evaluating your paint now.."
         if(self.status_bar['text'] == eval_string ):
             # allready Evaluating - stop
             return
-        self.set_status("Evaluating your paint now..")
+        self.can_paint = False
+        self.set_status(eval_string)
+
         processed_img = self.manager.pre_process(self.tiles)
-        self.show_img(processed_img*processed_img)
+        self.show_img(processed_img)
         self.manager.send_eval(self)
 
     def clear_canvas(self):
         self.canvas.delete("all")
         self.tiles = [[None for _ in range(COLS)] for _ in range(ROWS)]
+        self.can_paint = True
+        self.set_status("Paint your digit")
 
     def show_img(self, img):
         self.canvas.delete("all")
