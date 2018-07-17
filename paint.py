@@ -58,30 +58,44 @@ class Paint(object):
         col_width = int(self.canvas.winfo_width() / COLS)
         row_height = int(self.canvas.winfo_height() / ROWS)
         # Calculate column and row number
-        col = min(event.x//col_width, COLS-1)
-        row = min(event.y//row_height, ROWS-1)
+        col = event.x//col_width
+        row = event.y//row_height
+        if event.x < 0 or event.x >= self.canvas.winfo_width():
+            return
+        if event.y < 0 or event.y >= self.canvas.winfo_height():
+            return
+
         # paint or erase rectangle
         if not self.can_paint:
             self.set_status("ERROR - please clear before painting!!!")
         elif not self.eraser_on.get():
-            if not self.tiles[row][col]:
-                # If the tile is not filled, create a rectangle
                 colorval = "#%02x%02x%02x" % (0, 0, 0)
-                # TODO - resolve out-of-bound
-                self.tiles[row][col] = self.canvas.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width, (row + 1) * row_height, fill=colorval, outline=colorval)
-                self.tiles[row+1][col] = self.canvas.create_rectangle(col * col_width, row * row_height,
-                                                                    (col + 1) * col_width, (row + 2) * row_height,
-                                                                    fill=colorval, outline=colorval)
-                self.tiles[row][col+1] = self.canvas.create_rectangle(col * col_width, row * row_height,
-                                                                    (col + 2) * col_width, (row + 1) * row_height,
-                                                                    fill=colorval, outline=colorval)
-                self.tiles[row+1][col+1] = self.canvas.create_rectangle(col * col_width, row * row_height,
-                                                                    (col + 2) * col_width, (row + 2) * row_height,
-                                                                    fill=colorval, outline=colorval)
+
+                # If the tile is not filled, create a rectangle
+                self.create_rec(col, row, colorval)
+                self.create_rec(col+1, row, colorval)
+                self.create_rec(col, row+1, colorval)
+                self.create_rec(col+1, row+1, colorval)
         else:
+            self.delet_cel(col , row )
+            self.delet_cel(col , row + 1)
+            self.delet_cel(col + 1, row )
+            self.delet_cel(col + 1, row + 1)
+
+    def delet_cel(self, col, row):
+        if (col < COLS) and (row < ROWS) and self.tiles[row][col] is not None:
             self.canvas.delete(self.tiles[row][col])
             self.tiles[row][col] = None
 
+    def create_rec(self, col, row, colorval):
+        # Get rectangle diameters
+        col_width = int(self.canvas.winfo_width() / COLS)
+        row_height = int(self.canvas.winfo_height() / ROWS)
+
+        if (col < COLS) and (row < ROWS) and self.tiles[row][col] is None:
+            self.tiles[row][col] = self.canvas.create_rectangle(col * col_width, row * row_height,
+                                                                        (col + 1) * col_width, (row + 1) * row_height,
+                                                                        fill=colorval, outline=colorval)
 
     def send_eval(self):
         # change and check status

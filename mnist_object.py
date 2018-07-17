@@ -134,7 +134,6 @@ class Net:
         self.sess = tf.Session(config=config)
         self.saver = tf.train.Saver()
 
-        # TODO - do we really need this?
         if(self.resume):
             self.saver.restore(self.sess, tf.train.latest_checkpoint(LOGDIR))
         else:
