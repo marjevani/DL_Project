@@ -1,12 +1,10 @@
 import math
-
 from paint import Paint
 import threading
 import mnist_object
 from util import *
 import scipy.signal
 import numpy as np
-from tkinter import messagebox
 
 ### init Paint and provide function for his implementation.
 ### NOTICE - evaluate calculate in different thread to prevent GUI freezing
@@ -89,9 +87,9 @@ class Inference_manager(object):
         lines_left = [[0] * (4 - x_cent)] * 28
         lines_rigth = [[0] * (4 + x_cent)] * 28
 
-        # Y axis center
+        # center Y axis
         self.processed_img = lines_top + self.processed_img  + lines_bottom
-        # X axis center
+        # center X axis
         self.processed_img = np.concatenate((lines_left, self.processed_img , lines_rigth), axis=1)
         debug_print("img after centralize:")
         debug_print(np.array(lines_left).shape, np.array(self.processed_img).shape, np.array(lines_rigth).shape)
@@ -123,7 +121,7 @@ class Inference_manager(object):
         t.start()
 
     def send_eval_mt(self, processed_img, painter):
-        digit = mnist_object.eval(processed_img)
+        [ digit, statistics ] = mnist_object.eval(processed_img)
         # show the result in different popup window
         painter.set_status("The digit '" + str(digit) + "' Evaluated!!!")
-        messagebox.showinfo("you just paint the digit:", str(digit))
+        painter.pop_up("you just paint the digit:", str(digit) + "\n\nStatistics:\n" + statistics)

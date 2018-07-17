@@ -1,12 +1,12 @@
 from tkinter import *
 import threading
-from mnist_object import Net
+from tkinter import messagebox
 
 ROWS = 20
 COLS = 20
 
-### Paint module has to get his manager in constructor.
-### manager has to implimant:
+# Paint module has to get his manager in constructor.
+# manager has to implement:
     # 1)  "pre_proccess" function for pre processing the img before evaluate.
     # 2) "send_eval" for evalutaing the img data
     #    this function can update Paint status bar with the result by using "paint.set_status" function.
@@ -138,3 +138,6 @@ class Paint(object):
         self.lock.acquire()
         self.status_bar.configure(text=msg)
         self.lock.release()
+
+    def pop_up(self, title, msg):
+        messagebox.showinfo(title, msg)
