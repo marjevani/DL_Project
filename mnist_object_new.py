@@ -1,32 +1,12 @@
-# Copyright 2017 Google, Inc. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
 import math
 import os
 import tensorflow as tf
-import sys
 import os.path
 from datetime import datetime
 from util import *
-
-if sys.version_info[0] >= 3:
-    from urllib.request import urlretrieve
-else:
-    from urllib import urlretrieve
 import pickle
 
-LOGDIR = 'logs_new_model_3/'
+LOGDIR = 'logs_new_model_8/'
 GITHUB_URL = 'https://raw.githubusercontent.com/mamcgrath/TensorBoard-TF-Dev-Summit-Tutorial/master/'
 
 
@@ -41,6 +21,15 @@ class Net:
         self.mnist = tf.contrib.learn.datasets.mnist.read_data_sets(train_dir=LOGDIR + 'data', one_hot=True)
 
     ## Define CNN Layers ##
+
+    @staticmethod
+    def conv_layer_strach(input, size_in, size_out, name="conv"):
+        with tf.name_scope(name):
+            w = tf.Variable(tf.truncated_normal([6, 6, size_in, size_out], stddev=0.1), name="W")
+            conv = tf.nn.conv2d(input, w, strides=[1, 1, 1, 1], padding="SAME")
+            tf.summary.histogram("weights", w)
+            return conv
+
     @staticmethod
     def conv_layer(input, size_in, size_out, name="conv"):
         with tf.name_scope(name):
@@ -88,8 +77,9 @@ class Net:
         tf.summary.image('input', x_image, 3)
         self.y = tf.placeholder(tf.float32, shape=[None, 10], name="labels")
 
-        # create 2 conv layers and connect them:
-        conv1_a = self.conv_layer(x_image, 1, 32, "conv1_a")
+        conv1_strach = self.conv_layer_strach(x_image, 1, 16, "conv_strach")
+
+        conv1_a = self.conv_layer(conv1_strach, 16, 32, "conv1_a")
         conv1_b = self.conv_layer(conv1_a, 32, 32, "conv1_b")
         conv1_C = self.conv_layer(conv1_b, 32, 32, "conv1_c")
         pool1 = self.pooling_layer(conv1_C, "pool1")
@@ -163,31 +153,29 @@ class Net:
             step = 0
         for i in range(2000 * 50):
             batch = self.mnist.train.next_batch(100)
-
-            ## save statistics for tensorBoard (10K data test)
+            ## save statistics for tensorBoard (1K data test)
             if (i + step) % 5 == 0:
-                # update TensorBoard accuracy graph
                 self.prob.assign(0.4)
                 [train_accuracy, s, results] = self.sess.run([self.accuracy, self.summ, self.logits],
                                                              feed_dict={self.x: batch[0], self.y: batch[1]})
                 self.writer.add_summary(s, (i + step))
             if (i + step) % 500 == 0:
-                # update TensorBoard projecting graph
                 self.prob.assign(1)
                 [accuracy, assignment, s] = self.sess.run([self.accuracy, self.assignment, self.summ_eval],
                                                           feed_dict={self.x: self.mnist.test.images[:10000],
                                                                      self.y: self.mnist.test.labels[:10000]})
                 self.writer.add_summary(s, (i + step))
-                debug_print(accuracy, (i + step))
-                self.saver.save(self.sess, os.path.join(LOGDIR, "model.ckpt"), (i + step))
 
+                print(accuracy, (i + step))
+
+                self.saver.save(self.sess, os.path.join(LOGDIR, "model.ckpt"), (i + step))
             with open(os.path.join(LOGDIR, "step"), 'wb') as file:
                 pickle.dump((i + step), file)
 
-            ## Train Network
+            ## Train
             self.sess.run(self.train_step, feed_dict={self.x: batch[0], self.y: batch[1]})
 
-    def eval(self, img):
+    def eval(self,img):
         self.prob.assign(1)
         [train_accuracy, logits] = self.sess.run([self.accuracy, self.logits],
                                                  feed_dict={self.x: [img], self.y: [[0] * 10]})
@@ -196,7 +184,7 @@ class Net:
 
         eval_val = eval_list.index(max(eval_list))
 
-        softmax = True
+        softmax = False
         if softmax:
             sum_list = (sum([math.exp(x) for x in eval_list]))
             eval_list_percentage = [(math.exp(x) / sum_list) * 100 for x in eval_list]
@@ -256,6 +244,5 @@ def eval(img):
 
 
 # use main for CNN training only
-if __name__ == '__main__':
+if __name__ == '_main_':
     train_mnist_CNN()
-
