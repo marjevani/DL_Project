@@ -69,16 +69,14 @@ class Paint(object):
         if not self.can_paint:
             self.set_status("ERROR - please clear before painting!!!")
         elif not self.eraser_on.get():
-                colorval = "#%02x%02x%02x" % (0, 0, 0)
-
                 # If the tile is not filled, create a rectangle
-                self.create_rec(col, row, colorval)
-                self.create_rec(col+1, row, colorval)
-                self.create_rec(col, row+1, colorval)
-                self.create_rec(col+1, row+1, colorval)
+                self.create_rec(col, row)
+                self.create_rec(col+1, row)
+                self.create_rec(col, row+1)
+                self.create_rec(col+1, row+1)
         else:
-            self.delet_cel(col , row )
-            self.delet_cel(col , row + 1)
+            self.delet_cel(col, row )
+            self.delet_cel(col, row + 1)
             self.delet_cel(col + 1, row )
             self.delet_cel(col + 1, row + 1)
 
@@ -87,7 +85,8 @@ class Paint(object):
             self.canvas.delete(self.tiles[row][col])
             self.tiles[row][col] = None
 
-    def create_rec(self, col, row, colorval):
+    def create_rec(self, col, row):
+        colorval = "#%02x%02x%02x" % (0, 0, 0)
         # Get rectangle diameters
         col_width = int(self.canvas.winfo_width() / COLS)
         row_height = int(self.canvas.winfo_height() / ROWS)
