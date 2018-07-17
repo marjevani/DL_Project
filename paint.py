@@ -1,15 +1,16 @@
 from tkinter import *
 import threading
+from mnist_object import Net
 
 ROWS = 20
 COLS = 20
 
 ### Paint module has to get his manager in constructor.
 ### manager has to implimant:
-    #  "pre_proccess" function for pre processing the img before evaluate.
-    # "send_eval" for evalutaing the img data
-    # this function can update Paint status bar with the result by using "paint.set_status" function.
-    # NOTICE - you may wants to evaluate in different thread to prevent GUI freezing
+    # 1)  "pre_proccess" function for pre processing the img before evaluate.
+    # 2) "send_eval" for evalutaing the img data
+    #    this function can update Paint status bar with the result by using "paint.set_status" function.
+    #    NOTICE - you may wants to evaluate in different thread to prevent GUI freezing
 
 class Paint(object):
     def __init__(self, im):
@@ -66,7 +67,17 @@ class Paint(object):
             if not self.tiles[row][col]:
                 # If the tile is not filled, create a rectangle
                 colorval = "#%02x%02x%02x" % (0, 0, 0)
-                self.tiles[row][col] =self.canvas.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width, (row + 1) * row_height, fill=colorval, outline=colorval)
+                # TODO - resolve out-of-bound
+                self.tiles[row][col] = self.canvas.create_rectangle(col * col_width, row * row_height, (col + 1) * col_width, (row + 1) * row_height, fill=colorval, outline=colorval)
+                self.tiles[row+1][col] = self.canvas.create_rectangle(col * col_width, row * row_height,
+                                                                    (col + 1) * col_width, (row + 2) * row_height,
+                                                                    fill=colorval, outline=colorval)
+                self.tiles[row][col+1] = self.canvas.create_rectangle(col * col_width, row * row_height,
+                                                                    (col + 2) * col_width, (row + 1) * row_height,
+                                                                    fill=colorval, outline=colorval)
+                self.tiles[row+1][col+1] = self.canvas.create_rectangle(col * col_width, row * row_height,
+                                                                    (col + 2) * col_width, (row + 2) * row_height,
+                                                                    fill=colorval, outline=colorval)
         else:
             self.canvas.delete(self.tiles[row][col])
             self.tiles[row][col] = None
@@ -100,7 +111,7 @@ class Paint(object):
         centerd = [[None] * 28] * 28
         for row in range(28):
             for col in range(28):
-                num = int(255 - min(img[row][col], 255))
+                num = img[row][col]
                 colorval = "#%02x%02x%02x" % (num, num, num)
                 centerd[row][col] = self.canvas.create_rectangle(col * col_width, row * row_height,
                                                                  (col + 1) * col_width,

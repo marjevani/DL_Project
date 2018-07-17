@@ -189,8 +189,8 @@ class Net:
         eval_list_percentage = [(x / sum_list) * 100 for x in eval_list]
         index = 0
         for num in eval_list_percentage:
-          print('Digit', index,':',round(num,2))
-          index += 1
+            print('Digit', index,':',round(num,2))
+            index += 1
         print("The number is: " + str(eval_val))
         return eval_val
 
